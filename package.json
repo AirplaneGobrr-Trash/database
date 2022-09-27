@@ -1,0 +1,25 @@
+{
+  "name": "database",
+  "version": "1.0.0",
+  "description": "A simple database thingy made to save to json",
+  "main": "database.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AirplaneGobrr-Trash/database.git"
+  },
+  "keywords": [
+    "DATABASE",
+    "json",
+    "data",
+    "save"
+  ],
+  "author": "AirplaneGobrr",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AirplaneGobrr-Trash/database/issues"
+  },
+  "homepage": "https://github.com/AirplaneGobrr-Trash/database#readme"
+}

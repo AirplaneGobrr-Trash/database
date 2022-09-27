@@ -112,6 +112,31 @@ class database {
         if (!this.manual) await this.save()
     }
 
+    async toggleBoolean(path) {
+        this.saved = false
+        if (!this.manual) await this.load()
+        var path = path.split(".")
+        var current = this.data
+        var out = null
+        //Push the value to the correct path
+        for (var i = 0; i < path.length; i++) {
+            if (i == path.length - 1) {
+                current[path[i]] = !current[path[i]]
+                out = current[path[i]] 
+            } else {
+                if (!current[path[i]]) {
+                    current[path[i]] = {}
+                }
+                current = current[path[i]]
+            }
+        }
+        //Save current to data
+        //data = current
+        if (!this.manual) await this.save()
+        return out
+    }
+
+
     async get(path) {
         if (!this.manual) await this.load()
         var path = path.split(".")
