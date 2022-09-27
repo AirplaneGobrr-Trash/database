@@ -1,5 +1,5 @@
 {
-  "name": "database",
+  "name": "@airplanegobrr/database",
   "version": "1.0.0",
   "description": "A simple database thingy made to save to json",
   "main": "database.js",
