@@ -1,11 +1,13 @@
 const fs = require('fs');
 
-class database {
-    constructor(filename, manual) {
+module.exports = class dbClass {
+    constructor(filename, options = {}) {
         this.filename = filename ? filename : `database.json`
-        this.manual = manual ? manual : false //Manual Saving and Loading
+
+        this.manual = options.manual ? options.manual : false //Manual Saving and Loading
         this.data = null
         this.saved = null
+
         this.load()
     }
 
@@ -53,90 +55,6 @@ class database {
         if (!this.manual) await this.save()
     }
 
-    async has(path) {
-        if (!this.manual) await this.load()
-        var path = path.split(".")
-        var current = this.data
-        //Check if the value is in the correct path
-        for (var i = 0; i < path.length; i++) {
-            if (i == path.length - 1) {
-                return current[path[i]] != undefined
-            } else {
-                if (!current[path[i]]) {
-                    return false
-                }
-                current = current[path[i]]
-            }
-        }
-    }
-
-    async push(path, value) {
-        this.saved = false
-        if (!this.manual) await this.load()
-        var path = path.split(".")
-        var current = this.data
-        //Push the value to the correct path
-        for (var i = 0; i < path.length; i++) {
-            if (i == path.length - 1) {
-                current[path[i]].push(value)
-            } else {
-                if (!current[path[i]]) {
-                    current[path[i]] = {}
-                }
-                current = current[path[i]]
-            }
-        }
-        //Save current to data
-        //data = current
-        if (!this.manual) await this.save()
-    }
-
-    async add(path, value){
-        this.saved = false
-        if (!this.manual) await this.load()
-        var path = path.split(".")
-        var current = this.data
-        //Push the value to the correct path
-        for (var i = 0; i < path.length; i++) {
-            if (i == path.length - 1) {
-                current[path[i]] += value
-            } else {
-                if (!current[path[i]]) {
-                    current[path[i]] = {}
-                }
-                current = current[path[i]]
-            }
-        }
-        //Save current to data
-        //data = current
-        if (!this.manual) await this.save()
-    }
-
-    async toggleBoolean(path) {
-        this.saved = false
-        if (!this.manual) await this.load()
-        var path = path.split(".")
-        var current = this.data
-        var out = null
-        //Push the value to the correct path
-        for (var i = 0; i < path.length; i++) {
-            if (i == path.length - 1) {
-                current[path[i]] = !current[path[i]]
-                out = current[path[i]] 
-            } else {
-                if (!current[path[i]]) {
-                    current[path[i]] = {}
-                }
-                current = current[path[i]]
-            }
-        }
-        //Save current to data
-        //data = current
-        if (!this.manual) await this.save()
-        return out
-    }
-
-
     async get(path) {
         if (!this.manual) await this.load()
         var path = path.split(".")
@@ -147,13 +65,41 @@ class database {
                 return current[path[i]]
             } else {
                 if (!current[path[i]]) {
-                    return undefined
+                    return null
                 }
                 current = current[path[i]]
             }
         }
     }
 
-}
+    async has(path) {
+        return (await this.get(path)) != null
+    }
 
-module.exports = database
+    async add(path, value){
+        var currentNum = (await this.get(path)) ?? 0
+        await this.set(path, currentNum+value)
+    }
+
+    async #getArray(path) {
+        const currentArr = (await this.get(path)) ?? [];
+        if (!Array.isArray(currentArr)) throw new Error(`Current value with key: (${path}) is not an array`);
+        return currentArr;
+    }
+
+    async push(path, value) {
+        let currentArr = await this.#getArray(path);
+        if (Array.isArray(value)) {
+            currentArr = currentArr.concat(value);
+        } else {
+            currentArr.push(value)
+        };
+        return this.set(path, currentArr);
+    }
+
+    async toggleBoolean(path) {
+        let currentBool = (await this.get(path)) ?? false
+        return this.set(path, !currentBool);
+    }
+
+}

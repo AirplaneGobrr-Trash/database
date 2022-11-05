@@ -32,7 +32,7 @@ async function test(){
     await db2.toggleBoolean("name")
 
     //Using no awaits
-    const db3 = new Database("noAwaits.json", true)
+    const db3 = new Database("noAwaits.json", { manual: true })
     db3.set("name", true)
     db3.set("age", 20)
 
