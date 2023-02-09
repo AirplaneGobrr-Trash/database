@@ -1,7 +1,9 @@
 const fs = require('fs');
+const EventEmitter = require('events');
 
-module.exports = class dbClass {
+module.exports = class dbClass extends EventEmitter {
     constructor(filename, options = {}) {
+        super()
         this.filename = filename ? filename : `database.json`
 
         this.manual = options.manual ? options.manual : false //Manual Saving and Loading
@@ -19,6 +21,7 @@ module.exports = class dbClass {
     //var fileName = "database.json"
 
     async save() {
+        this.emit("save")
         fs.writeFileSync(this.filename, JSON.stringify(this.data))
         this.saved = true
     }
@@ -32,6 +35,7 @@ module.exports = class dbClass {
             fs.writeFileSync(this.filename, JSON.stringify({}))
             this.data = {}
         }
+        this.emit("load", this.data)
     }
 
     async set(path, value) {
@@ -50,6 +54,7 @@ module.exports = class dbClass {
                 current = current[path[i]]
             }
         }
+        this.emit("set", path, value)
         //Save current to data
         //data = current
         if (!this.manual) await this.save()
@@ -59,6 +64,7 @@ module.exports = class dbClass {
         if (!this.manual) await this.load()
         var path = path.split(".")
         var current = this.data
+        this.emit("get", path)
         //Get the value from the correct path
         for (var i = 0; i < path.length; i++) {
             if (i == path.length - 1) {
