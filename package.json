@@ -1,6 +1,6 @@
 {
   "name": "@airplanegobrr/database",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A simple database thingy made to save to json",
   "main": "database.js",
   "scripts": {
