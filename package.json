@@ -22,8 +22,5 @@
     "url": "https://github.com/AirplaneGobrr-Trash/database/issues"
   },
   "homepage": "https://github.com/AirplaneGobrr-Trash/database#readme",
-  "devDependencies": {
-    "promise-mysql": "^5.2.0",
-    "quick.db": "^9.0.6"
-  }
+  "files":["database.js", "package.json", "readme.md"]
 }
