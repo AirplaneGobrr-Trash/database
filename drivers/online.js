@@ -18,6 +18,14 @@ class dbClient {
         this.defaultTable = null
     }
 
+    async load(){
+        return this.socket.connected
+    }
+
+    async save(){
+        //Does nothing, filler function
+    }
+
     async changeDatabase(database) {
         return new Promise((resolve, reject) => {
             this.socket.emit("changeDatabase", database, (a) => {
