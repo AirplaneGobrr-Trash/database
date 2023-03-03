@@ -22,5 +22,12 @@
     "url": "https://github.com/AirplaneGobrr-Trash/database/issues"
   },
   "homepage": "https://github.com/AirplaneGobrr-Trash/database#readme",
-  "files":["database.js", "package.json", "readme.md"]
+  "files": [
+    "database.js",
+    "package.json",
+    "readme.md"
+  ],
+  "devDependencies": {
+    "socket.io-client": "^4.6.1"
+  }
 }
