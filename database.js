@@ -126,6 +126,10 @@ class dbClass extends EventEmitter {
         let currentBool = (await this.get(path)) ?? false
         return this.set(path, !currentBool);
     }
+
+    async delete(path) {
+        return this.driver.delete(path)
+    }
 }
 
 dbClass.drivers = {

@@ -1,5 +1,9 @@
 # Database
 
+# Warning 2.0.0 may have some breaking changes from 1.0.X
+
+**Alot** of backend code was changed so please check!
+
 This is my custom built database module for nodejs!
 
 Tests:

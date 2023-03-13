@@ -84,6 +84,32 @@ module.exports = class dbClass {
 
     /**
      * 
+     * @param {String} path
+     */
+    async delete(path) {
+        this.saved = false
+        if (!this.manual) await this.load()
+        var path = path.split(".")
+        var current = this.data
+
+        //Save the value to the correct path
+        for (var i = 0; i < path.length; i++) {
+            if (i == path.length - 1) {
+                delete current[path[i]]
+            } else {
+                if (!current[path[i]]) {
+                    current[path[i]] = {}
+                }
+                current = current[path[i]]
+            }
+        }
+        //Save current to data
+        //data = current
+        if (!this.manual) await this.save()
+    }
+
+    /**
+     * 
      * @param {String} path 
      * @returns 
      */

@@ -56,6 +56,16 @@ class dbClient {
         })
     }
 
+    async delete(path) {
+        return new Promise((resolve, reject) => {
+            if (this.defaultTable) path = `${this.defaultTable}.${path}`
+            this.socket.emit("delete", path, (a) => {
+                if (a && a?.error) reject(a)
+                resolve(a)
+            })
+        })
+    }
+
     async has(path) {
         return new Promise((resolve, reject) => {
             if (this.defaultTable) path = `${this.defaultTable}.${path}`
