@@ -1,13 +1,15 @@
-const { io } = require("socket.io-client")
 class dbClient {
     /**
-* @param {Object} [options] Auth options
-* @param {String} [options.url] Auth url
-* @param {String} [options.database] Auth db
-* @param {String} [options.auth] Auth token
+    * @param {Object} [options] Auth options
+    * @param {String} [options.url] Auth url
+    * @param {String} [options.database] Auth db
+    * @param {Object} [options.auth] Auth Data
+    * @param {String} [options.auth.user] Auth user
+    * @param {String} [options.auth.password] Auth password
  */
     constructor(options) {
         BigInt.prototype.toJSON = function () { return this.toString() }
+        const { io } = require("socket.io-client")
         this.socket = io(options.url, {
             auth: {
                 database: options.database,
@@ -19,7 +21,15 @@ class dbClient {
     }
 
     async load(){
-        return this.socket.connected
+        return new Promise((g,b)=>{
+            var int = setInterval(()=>{
+                if (this.socket.connected) g()
+            }, 100)
+            setTimeout(()=>{
+                clearInterval(int)
+                b("Timed out after 10 seconds!")
+            }, 10* 1000)
+        })
     }
 
     async save(){

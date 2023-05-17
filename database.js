@@ -2,6 +2,7 @@ const fs = require('fs');
 const EventEmitter = require('events');
 
 let localD = require("./drivers/local")
+let onlineD = require("./drivers/online")
 
 class dbClass extends EventEmitter {
     /**
@@ -59,7 +60,7 @@ class dbClass extends EventEmitter {
      * @param {*} value 
      */
     async set(path, value) {
-        await this.driver.set(path,value)
+        await this.driver.set(path,value).catch(e=>new Error(e))
     }
 
     /**
@@ -68,7 +69,7 @@ class dbClass extends EventEmitter {
      * @returns 
      */
     async get(path) {
-        return this.driver.get(path)
+        return this.driver.get(path).catch(e=>new Error(e))
     }
 
     /**
@@ -133,7 +134,10 @@ class dbClass extends EventEmitter {
 }
 
 dbClass.drivers = {
-    online: require("./drivers/online")
+    online: onlineD,
+    local: localD
 }
+
+dbClass.server = require("./server")
 
 module.exports = dbClass

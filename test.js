@@ -17,13 +17,7 @@ async function test(){
 
     
     //No args
-    const db1 = new Database({
-        driver: new Database.drivers.online({
-            auth: "abc",
-            database: "test",
-            url: "http://test"
-        })
-    })
+    const db1 = new Database()
     
     await db1.set("name", true)
     await db1.set("age", 20)
@@ -51,4 +45,22 @@ async function test(){
     //you can also get the raw data
     db3.driver.data.name = "Bob"
 }
-test()
+
+async function serverTest(){
+    const server = new Database.server()
+    await server.start()
+    console.log("Server started")
+
+    const client = new Database({
+        driver: new Database.drivers.online({
+            url: "ws://127.0.0.1:3000",
+            auth: { user: "user2", password: "pass" },
+            database: "exampleDatabase"
+        })
+    })
+    await client.load()
+    console.log("Client loaded!")
+    await client.set("abc", {hello:"eee"}).catch()
+    await client.set("abc.test", {no: false}).catch()
+}
+serverTest()
