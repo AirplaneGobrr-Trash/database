@@ -6,9 +6,13 @@ class Server extends EventEmitter {
      * @param {Server} server HTTP server
      * @param {Object} authData Auth data, Logins
      */
-    constructor(server = null, authData = {}) {
+    constructor(server = null, authData) {
         super()
         this.server = server
+
+        var debug = false
+
+        authData ??= { loginRequired: false }
 
         if (!this.server) {
             this.express = require('express');
@@ -21,8 +25,8 @@ class Server extends EventEmitter {
         const io = new Server(this.server);
 
         const dbMod = require("./database")
-        this.bitmask = require('json-bitmask')
-        this.bitmask.permissions = this.bitmask.from({
+        var bitmask = require('json-bitmask')
+        var bitPermissions = bitmask.from({
             ADMIN: 1,
             READ: 2,
             WRITE: 4,
@@ -30,81 +34,73 @@ class Server extends EventEmitter {
             CREATEDATABASE: 16
         })
 
-        var authDataE = {
-            databases: [
-                { name: "exampleDatabase", allowedUsers: ["user1", "user2"] }
-            ],
-            users: [
-                { user: "user1", password: "pass", authLevel: 1 },
-                { user: "user2", password: "pass", authLevel: 2 }
-            ],
-            allowCreationOfDatabases: true, // allows clients to make databases
-            loginRequired: true
-        }
-
-        io.on('connection', async (socket) => {
-            console.log('a user connected');
-            var auth = socket.handshake.auth;
-            if (authDataE.loginRequired) {
-                var userAuth = auth.auth // { user: "XYZ", password: "XYZ" }
-
+        async function getAuthdata(socket, auth){
+            var out = { permissions: null }
+            if (authData.loginRequired) {
+                var userAuth = auth // { user: "XYZ", password: "XYZ" }
                 if (!userAuth) return socket.emit("authError", {
                     error: "No auth data provided!",
                     code: 511
                 })
-                var userInfo = authDataE.users.find(u => u.user === userAuth.user)
-
+                var userInfo = authData.users.find(u => u.user === userAuth.user)
                 if (!userInfo || userInfo.password != userAuth.password) return socket.emit("authError", {
                     error: "User name or password is invaild!",
                     code: 401
                 })
+                var userPermissions = bitPermissions(userInfo.authLevel)
+                out.permissions = userPermissions
+            }
+            return out
+        }
 
-                var userPermissions = this.bitmask.permissions(userInfo.authLevel)
-                console.log(userInfo, auth)
-                socket.permissions = userPermissions
+        async function checkAuth(type, permissions) {
+            if (!authData.loginRequired) return true // Auth is not needed
+            if (authData.loginRequired && !permissions) return false
+            if (permissions?.ADMIN) return true // Is admin
+            switch(type) {
+                case "has":
+                case "get": {
+                    return !!(permissions.READ);
+                }
+                case "set":
+                case "push": {
+                    return !!(permissions.WRITE);
+                }
+                case "delete": {
+                    return !!(permissions.DELETE);
+                }
+                default: {
+                    console.log(type)
+                    break
+                }
+            }
+        }
 
-                var databaseWant = authDataE.databases.find(d => d.name === auth.database)
-                var allowed = databaseWant.allowedUsers.includes(userInfo.user)
+        io.on('connection', async (socket) => {
+            if (debug) console.log('a user connected');
+            var data = socket.handshake.auth;
+            var auth = data.auth
 
+            var userAuthData = await getAuthdata(socket, auth)
+
+            if (authData && authData.databases) {
+                var databaseWant = authData.databases.find(d => d.name === data.database)
+                var allowed = databaseWant.allowedUsers.includes(auth.user)
                 if (!allowed) return socket.emit("authError", {
                     error: "You are not allowed to access this database!",
                     code: 403
                 })
             }
+            
 
-            const db = new dbMod(auth)
+            const db = new dbMod(data)
             // await db.set("foo.bar","abc")
-            // console.log(await db.get("foo"))
-
-            async function checkAuth(socket, callback) {
-                if (!authDataE.loginRequired) return true // Auth needed
-                if (authDataE.loginRequired && !socket.permissions) return false
-                if (socket?.permissions?.ADMIN) return true // Is admin
-                switch(eventName) {
-                    case "has":
-                    case "get": {
-                        if (socket.permissions.READ) return true; else return false
-                        break
-                    }
-
-                    case "set":
-                    case "push": {
-                        if (socket.permissions.WRITE) return true; else return false
-                        break
-                    }
-                    case "delete": {
-                        if (socket.permissions.DELETE) return true; else return false
-                        break
-                    }
-                    default: {
-                        console.log(eventName)
-                        break
-                    }
-                }
-            }
+            // if (debug) console.log(await db.get("foo"))
 
             socket.on("get", async (path, cb) => {
-                console.log("Get", path)
+                if (debug) console.log("Get", path)
+                var allowed = await checkAuth("get", userAuthData.permissions)
+                if (!allowed) return cb({ error: true })
                 try {
                     var back = await db.get(path)
                     cb(back)
@@ -120,7 +116,7 @@ class Server extends EventEmitter {
             })
 
             socket.on("changeDatabase", async (newDatabase, cb) => {
-                console.log("ChangeDatabase", newDatabase)
+                if (debug) console.log("ChangeDatabase", newDatabase)
                 try {
                     var good = await db.changeDatabase(newDatabase)
                     cb(good)
@@ -137,7 +133,11 @@ class Server extends EventEmitter {
             })
 
             socket.on("set", async (path, value, cb) => {
-                console.log("Set", path, value)
+                if (debug) console.log("Set", path, value)
+
+                var allowed = await checkAuth("set", userAuthData.permissions)
+                if (!allowed) return cb({ error: true, message: "No Auth!", code: 401 })
+
                 try {
                     cb(await db.set(path, value))
                 } catch (e) {
@@ -152,7 +152,11 @@ class Server extends EventEmitter {
             })
 
             socket.on("has", async (path, cb) => {
-                console.log("Has", path)
+                if (debug) console.log("Has", path)
+                
+                var allowed = await checkAuth("has", userAuthData.permissions)
+                if (!allowed) return cb({ error: true, message: "No Auth!", code: 401 })
+
                 try {
                     var back = await db.has(path)
                     cb(back)
@@ -168,7 +172,11 @@ class Server extends EventEmitter {
             })
 
             socket.on("push", async (path, value, cb) => {
-                console.log("Push", path, value)
+                if (debug) console.log("Push", path, value)
+
+                var allowed = await checkAuth("push", userAuthData.permissions)
+                if (!allowed) return cb({ error: true, message: "No Auth!", code: 401 })
+
                 try {
                     cb(await db.push(path, value))
                 } catch (e) {

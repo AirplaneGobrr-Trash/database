@@ -47,20 +47,29 @@ async function test(){
 }
 
 async function serverTest(){
-    const server = new Database.server()
+    const server = new Database.server(null, {
+        databases: [
+            { name: "exampleDatabase", allowedUsers: ["user1", "user2"] }
+        ],
+        users: [
+            { user: "user1", password: "pass", authLevel: 1 },
+            { user: "user2", password: "pass", authLevel: 2 }
+        ],
+        allowCreationOfDatabases: true, // allows clients to make databases
+        loginRequired: false
+    })
     await server.start()
     console.log("Server started")
 
     const client = new Database({
         driver: new Database.drivers.online({
-            url: "ws://127.0.0.1:3000",
+            url: "WS://127.0.0.1:3000",
             auth: { user: "user2", password: "pass" },
             database: "exampleDatabase"
         })
     })
     await client.load()
     console.log("Client loaded!")
-    await client.set("abc", {hello:"eee"}).catch()
-    await client.set("abc.test", {no: false}).catch()
+    await client.set("abc", {hello:"eeee"}).catch(e=>{console.log("ERROR", e)})
+    await client.set("abc.test", {no: false}).catch(e=>{console.log("ERROR", e)})
 }
-serverTest()

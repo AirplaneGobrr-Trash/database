@@ -60,7 +60,7 @@ class dbClass extends EventEmitter {
      * @param {*} value 
      */
     async set(path, value) {
-        await this.driver.set(path,value).catch(e=>new Error(e))
+        await this.driver.set(path,value)
     }
 
     /**
@@ -69,7 +69,7 @@ class dbClass extends EventEmitter {
      * @returns 
      */
     async get(path) {
-        return this.driver.get(path).catch(e=>new Error(e))
+        return this.driver.get(path)
     }
 
     /**

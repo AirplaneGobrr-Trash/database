@@ -10,7 +10,12 @@ class dbClient {
     constructor(options) {
         BigInt.prototype.toJSON = function () { return this.toString() }
         const { io } = require("socket.io-client")
-        this.socket = io(options.url, {
+        var url = options.url
+        if (!url.startsWith("ws://") || !url.startsWith("wss://")) {
+            url = `ws://${url}`
+            console.log(`[DATABASE] [ONLINE DRIVER] PLEASE GET USED TO PUTTING WS:// / WSS:// IN THE URL LIKE SO: ${url}`)
+        }
+        this.socket = io(url, {
             auth: {
                 database: options.database,
                 auth: options.auth
