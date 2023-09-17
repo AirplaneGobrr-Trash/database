@@ -52,13 +52,13 @@ module.exports = class dbClass {
 
     /**
      * 
-     * @param {String} path 
+     * @param {String} pathIn 
      * @param {*} value 
      */
-    async set(path, value) {
+    async set(pathIn, value) {
         this.saved = false
         if (!this.manual) await this.load()
-        var path = path.split(".")
+        var path = pathIn.split(".")
         var current = this.data
 
         if (typeof value == "string" && value.includes(".")) {
@@ -84,12 +84,12 @@ module.exports = class dbClass {
 
     /**
      * 
-     * @param {String} path
+     * @param {String} pathIn
      */
-    async delete(path) {
+    async delete(pathIn) {
         this.saved = false
         if (!this.manual) await this.load()
-        var path = path.split(".")
+        var path = pathIn.split(".")
         var current = this.data
 
         //Save the value to the correct path
@@ -110,12 +110,12 @@ module.exports = class dbClass {
 
     /**
      * 
-     * @param {String} path 
+     * @param {String} pathIn 
      * @returns 
      */
-    async get(path) {
+    async get(pathIn) {
         if (!this.manual) await this.load()
-        var path = path.split(".")
+        var path = pathIn.split(".")
         var current = this.data
         //Get the value from the correct path
         for (var i = 0; i < path.length; i++) {

@@ -50,9 +50,10 @@ class dbClient {
         })
     }
 
-    async get(path) {
+    async get(pathIn) {
         return new Promise((resolve, reject) => {
-            if (!path) path = this.defaultTable; else if (this.defaultTable) path = `${this.defaultTable}.${path}`;
+            let path = null;
+            if (!pathIn) path = this.defaultTable; else if (this.defaultTable) path = `${this.defaultTable}.${pathIn}`;
             this.socket.emit("get", path, (a) => {
                 if (a && a?.error) reject(a)
                 return resolve(a)
@@ -61,9 +62,10 @@ class dbClient {
 
     }
 
-    async set(path, value) {
+    async set(pathIn, value) {
         return new Promise((resolve, reject) => {
-            if (this.defaultTable) path = `${this.defaultTable}.${path}`
+            let path = null;
+            if (this.defaultTable) path = `${this.defaultTable}.${pathIn}`
             this.socket.emit("set", path, value, (a) => {
                 if (a && a?.error) reject(a)
                 resolve(a)
@@ -71,9 +73,10 @@ class dbClient {
         })
     }
 
-    async delete(path) {
+    async delete(pathIn) {
         return new Promise((resolve, reject) => {
-            if (this.defaultTable) path = `${this.defaultTable}.${path}`
+            let path = null;
+            if (this.defaultTable) path = `${this.defaultTable}.${pathIn}`
             this.socket.emit("delete", path, (a) => {
                 if (a && a?.error) reject(a)
                 resolve(a)
@@ -81,9 +84,10 @@ class dbClient {
         })
     }
 
-    async has(path) {
+    async has(pathIn) {
         return new Promise((resolve, reject) => {
-            if (this.defaultTable) path = `${this.defaultTable}.${path}`
+            let path = null;
+            if (this.defaultTable) path = `${this.defaultTable}.${pathIn}`
             this.socket.emit("has", path, (a) => {
                 if (a && a?.error) reject(a)
                 resolve(a)
@@ -91,9 +95,10 @@ class dbClient {
         })
     }
 
-    async push(path, value) {
+    async push(pathIn, value) {
         return new Promise((resolve, reject) => {
-            if (this.defaultTable) path = `${this.defaultTable}.${path}`
+            let path = null;
+            if (this.defaultTable) path = `${this.defaultTable}.${pathIn}`
             this.socket.emit("push", path, value, (a) => {
                 if (a && a?.error) reject(a)
                 resolve(a)
